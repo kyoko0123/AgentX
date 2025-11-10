@@ -1,0 +1,438 @@
+// AgentX Prisma Schema
+// Database: PostgreSQL
+// ORM: Prisma 5.x
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["jsonProtocol"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // For Vercel Postgres
+}
+
+// ============================================
+// User Management
+// ============================================
+
+/// ユーザーアカウント
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  name      String?
+  image     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // リレーション
+  xAccount       XAccount?
+  userProfile    UserProfile?
+  collectedPosts CollectedPost[]
+  generatedPosts GeneratedPost[]
+  scheduledPosts ScheduledPost[]
+  publishedPosts PublishedPost[]
+  keywords       Keyword[]
+  dailyAnalytics DailyAnalytics[]
+  analyses       Analysis[]
+
+  @@map("users")
+}
+
+/// X (Twitter) 連携アカウント情報
+model XAccount {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // X アカウント情報
+  twitterId    String    @unique
+  username     String
+
+  // OAuth トークン（暗号化して保存推奨）
+  accessToken  String    @db.Text
+  refreshToken String?   @db.Text
+  tokenExpiry  DateTime?
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([twitterId])
+  @@map("x_accounts")
+}
+
+/// ユーザープロフィール設定
+model UserProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 専門性と興味
+  expertise      String[] @default([])
+  interests      String[] @default([])
+
+  // 投稿設定
+  tone           ToneType @default(PROFESSIONAL)
+  avoidTopics    String[] @default([])
+  targetAudience String?  @db.Text
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+/// 投稿のトーン
+enum ToneType {
+  PROFESSIONAL
+  CASUAL
+  HUMOROUS
+}
+
+// ============================================
+// Post Collection & Analysis
+// ============================================
+
+/// 収集した投稿
+model CollectedPost {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // X 投稿データ
+  tweetId     String   @unique
+  text        String   @db.Text
+
+  // 投稿者情報
+  authorId       String
+  authorUsername String
+  authorFollowers Int?
+
+  // 投稿日時
+  tweetCreatedAt DateTime
+
+  // エンゲージメントメトリクス
+  likes       Int @default(0)
+  retweets    Int @default(0)
+  replies     Int @default(0)
+  impressions Int?
+
+  // 分析結果
+  topics         String[] @default([])
+  sentiment      SentimentType?
+  engagementRate Float?
+
+  // 収集日時
+  collectedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // リレーション
+  analysisRelations AnalysisOnPost[]
+
+  @@index([userId, tweetCreatedAt])
+  @@index([engagementRate])
+  @@index([sentiment])
+  @@index([collectedAt])
+  @@index([tweetCreatedAt])
+  @@map("collected_posts")
+}
+
+/// 感情分析結果
+enum SentimentType {
+  POSITIVE
+  NEGATIVE
+  NEUTRAL
+}
+
+/// 分析結果
+model Analysis {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 分析タイプと結果
+  analysisType AnalysisType
+  result       Json     @db.JsonB
+
+  // 分析日時
+  analyzedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  // リレーション
+  postRelations AnalysisOnPost[]
+
+  @@index([userId, analysisType])
+  @@index([analyzedAt])
+  @@map("analyses")
+}
+
+/// 分析タイプ
+enum AnalysisType {
+  TOPIC_CLUSTERING
+  SENTIMENT_ANALYSIS
+  ENGAGEMENT_ANALYSIS
+  CONTENT_PATTERN
+  TREND_ANALYSIS
+}
+
+/// 分析と投稿の中間テーブル（多対多リレーション）
+model AnalysisOnPost {
+  analysisId      String
+  analysis        Analysis      @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  collectedPostId String
+  collectedPost   CollectedPost @relation(fields: [collectedPostId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime      @default(now())
+
+  @@id([analysisId, collectedPostId])
+  @@index([analysisId])
+  @@index([collectedPostId])
+  @@map("analysis_on_posts")
+}
+
+// ============================================
+// Post Generation & Scheduling
+// ============================================
+
+/// 生成した投稿
+model GeneratedPost {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 投稿内容
+  text          String     @db.Text
+
+  // 生成メタデータ
+  basedOnTopic  String?
+  tone          ToneType
+  version       Int        @default(1)
+
+  // ステータス
+  status        PostStatus @default(DRAFT)
+
+  // AI 情報
+  model         String     @default("claude-3-5-sonnet")
+  prompt        String?    @db.Text
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // リレーション
+  scheduledPost ScheduledPost?
+
+  @@index([userId, status])
+  @@index([createdAt])
+  @@index([basedOnTopic])
+  @@map("generated_posts")
+}
+
+/// 投稿ステータス
+enum PostStatus {
+  DRAFT      // 下書き
+  APPROVED   // 承認済み
+  SCHEDULED  // スケジュール済み
+  PUBLISHED  // 公開済み
+  FAILED     // 失敗
+}
+
+/// スケジュール投稿
+model ScheduledPost {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  generatedPostId String         @unique
+  generatedPost   GeneratedPost  @relation(fields: [generatedPostId], references: [id], onDelete: Cascade)
+
+  // スケジュール設定
+  scheduledFor    DateTime
+  timezone        String         @default("UTC")
+
+  // 繰り返し設定
+  recurring       Boolean        @default(false)
+  recurringPattern RecurringPattern?
+
+  // ステータス
+  status          ScheduleStatus @default(PENDING)
+  error           String?        @db.Text
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // リレーション
+  publishedPost   PublishedPost?
+
+  @@index([userId, scheduledFor])
+  @@index([status, scheduledFor])
+  @@index([scheduledFor])
+  @@map("scheduled_posts")
+}
+
+/// スケジュールステータス
+enum ScheduleStatus {
+  PENDING    // 実行待ち
+  PROCESSING // 実行中
+  PUBLISHED  // 公開完了
+  FAILED     // 失敗
+  CANCELLED  // キャンセル
+}
+
+/// 繰り返しパターン
+enum RecurringPattern {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+/// 公開済み投稿
+model PublishedPost {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  scheduledPostId String   @unique
+  scheduledPost   ScheduledPost @relation(fields: [scheduledPostId], references: [id], onDelete: Cascade)
+
+  // X 投稿ID
+  tweetId         String   @unique
+
+  // 公開日時
+  publishedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  // リレーション
+  postPerformance PostPerformance?
+
+  @@index([userId, publishedAt])
+  @@index([publishedAt])
+  @@map("published_posts")
+}
+
+/// 投稿パフォーマンス
+model PostPerformance {
+  id              String   @id @default(cuid())
+  publishedPostId String   @unique
+  publishedPost   PublishedPost @relation(fields: [publishedPostId], references: [id], onDelete: Cascade)
+
+  // エンゲージメントメトリクス
+  likes           Int      @default(0)
+  retweets        Int      @default(0)
+  replies         Int      @default(0)
+  impressions     Int      @default(0)
+  engagementRate  Float    @default(0)
+
+  // 更新情報
+  lastUpdatedAt   DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@index([engagementRate])
+  @@index([lastUpdatedAt])
+  @@map("post_performances")
+}
+
+// ============================================
+// Keywords & Analytics
+// ============================================
+
+/// 収集キーワード
+model Keyword {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  keyword   String
+  active    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, keyword])
+  @@index([userId, active])
+  @@map("keywords")
+}
+
+/// 日次分析統計
+model DailyAnalytics {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 集計日
+  date            DateTime @db.Date
+
+  // 投稿統計
+  postsPublished  Int      @default(0)
+  totalLikes      Int      @default(0)
+  totalRetweets   Int      @default(0)
+  totalReplies    Int      @default(0)
+  totalImpressions Int     @default(0)
+
+  // トレンド
+  topTopics       String[] @default([])
+  avgEngagement   Float?
+
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([date])
+  @@map("daily_analytics")
+}
+
+// ============================================
+// Audit & Logs (Optional - 将来的な実装)
+// ============================================
+
+/// システムログ（オプション）
+model SystemLog {
+  id          String   @id @default(cuid())
+  userId      String?
+
+  // ログレベルとメッセージ
+  level       LogLevel
+  message     String   @db.Text
+  metadata    Json?    @db.JsonB
+
+  // エラー情報
+  errorStack  String?  @db.Text
+
+  createdAt   DateTime @default(now())
+
+  @@index([level, createdAt])
+  @@index([userId, createdAt])
+  @@map("system_logs")
+}
+
+/// ログレベル
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
+/// APIリクエストログ（オプション - Rate Limit監視用）
+model ApiRequestLog {
+  id          String   @id @default(cuid())
+  userId      String?
+
+  // API情報
+  endpoint    String
+  method      String
+  statusCode  Int
+
+  // タイミング
+  duration    Int      // ミリ秒
+
+  // メタデータ
+  metadata    Json?    @db.JsonB
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([endpoint, createdAt])
+  @@index([statusCode, createdAt])
+  @@map("api_request_logs")
+}
