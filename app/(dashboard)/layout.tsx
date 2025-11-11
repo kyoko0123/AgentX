@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigation = [
     {
-      name: 'Dashboard',
+      name: 'ダッシュボード',
       href: '/dashboard',
       icon: (
         <svg
@@ -59,7 +59,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       ),
     },
     {
-      name: 'Generate',
+      name: '投稿生成',
       href: '/generate',
       icon: (
         <svg
@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       ),
     },
     {
-      name: 'Profile',
+      name: 'プロフィール',
       href: '/profile',
       icon: (
         <svg
@@ -207,7 +207,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                 />
               </svg>
-              Sign Out
+              ログアウト
             </button>
           </div>
         </div>

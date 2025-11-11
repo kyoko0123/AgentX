@@ -101,10 +101,10 @@ export default function DashboardPage() {
       {/* Welcome section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          Welcome back, {session?.user?.name || 'User'}!
+          おかえりなさい、{session?.user?.name || 'ユーザー'}さん！
         </h1>
         <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Here is your X post generation dashboard
+          X投稿生成ダッシュボード
         </p>
       </div>
 
@@ -112,29 +112,29 @@ export default function DashboardPage() {
       <div className="mb-8 grid gap-4 md:grid-cols-2">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20">
           <CardHeader>
-            <CardTitle>Generate New Post</CardTitle>
+            <CardTitle>新しい投稿を生成</CardTitle>
             <CardDescription>
-              Create AI-powered X posts based on your topic
+              AIを使ってトピックに基づいたX投稿を作成
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/generate">
-              <Button className="w-full">Start Generating</Button>
+              <Button className="w-full">生成を開始</Button>
             </Link>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20">
           <CardHeader>
-            <CardTitle>Update Profile</CardTitle>
+            <CardTitle>プロフィール更新</CardTitle>
             <CardDescription>
-              Customize your expertise and preferences
+              専門分野や設定をカスタマイズ
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/profile">
               <Button variant="secondary" className="w-full">
-                Edit Profile
+                プロフィールを編集
               </Button>
             </Link>
           </CardContent>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  Total Posts
+                  総投稿数
                 </p>
                 <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
                   {stats.totalDrafts}
@@ -161,7 +161,7 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  This Week
+                  今週
                 </p>
                 <p className="mt-2 text-3xl font-bold text-blue-600 dark:text-blue-400">
                   {stats.draftsThisWeek}
@@ -174,7 +174,7 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  This Month
+                  今月
                 </p>
                 <p className="mt-2 text-3xl font-bold text-purple-600 dark:text-purple-400">
                   {stats.draftsThisMonth}
@@ -188,8 +188,8 @@ export default function DashboardPage() {
       {/* Recent drafts */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Drafts</CardTitle>
-          <CardDescription>Your latest generated posts</CardDescription>
+          <CardTitle>最近の下書き</CardTitle>
+          <CardDescription>最新の生成された投稿</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -205,7 +205,7 @@ export default function DashboardPage() {
                 onClick={loadDashboardData}
                 className="mt-3"
               >
-                Retry
+                再試行
               </Button>
             </div>
           ) : drafts.length === 0 ? (
@@ -224,10 +224,10 @@ export default function DashboardPage() {
                 />
               </svg>
               <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-                No drafts yet. Start generating your first post!
+                まだ下書きがありません。最初の投稿を生成しましょう！
               </p>
               <Link href="/generate">
-                <Button className="mt-4">Generate Post</Button>
+                <Button className="mt-4">投稿を生成</Button>
               </Link>
             </div>
           ) : (

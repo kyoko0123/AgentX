@@ -34,22 +34,22 @@ export default function GeneratePage() {
   const [error, setError] = useState<string | null>(null);
 
   const toneOptions = [
-    { value: 'professional', label: 'Professional' },
-    { value: 'casual', label: 'Casual' },
-    { value: 'humorous', label: 'Humorous' },
+    { value: 'professional', label: 'プロフェッショナル' },
+    { value: 'casual', label: 'カジュアル' },
+    { value: 'humorous', label: 'ユーモラス' },
   ];
 
   const lengthOptions = [
-    { value: 'short', label: 'Short (50-100 chars)' },
-    { value: 'medium', label: 'Medium (100-200 chars)' },
-    { value: 'long', label: 'Long (200-280 chars)' },
+    { value: 'short', label: '短い (50-100文字)' },
+    { value: 'medium', label: '普通 (100-200文字)' },
+    { value: 'long', label: '長い (200-280文字)' },
   ];
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!topic.trim()) {
-      setError('Please enter a topic');
+      setError('トピックを入力してください');
       return;
     }
 
@@ -71,13 +71,13 @@ export default function GeneratePage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate post');
+        throw new Error(errorData.error || '投稿の生成に失敗しました');
       }
 
       const data = await response.json();
       setResult(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
     } finally {
       setIsGenerating(false);
     }
@@ -91,7 +91,7 @@ export default function GeneratePage() {
   const handleCopy = async () => {
     if (result?.content) {
       await navigator.clipboard.writeText(result.content);
-      alert('Copied to clipboard!');
+      alert('クリップボードにコピーしました！');
     }
   };
 
@@ -107,10 +107,10 @@ export default function GeneratePage() {
     <div className="mx-auto max-w-4xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          Generate Post
+          投稿生成
         </h1>
         <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Create AI-powered X posts tailored to your needs
+          AIを使ってX投稿を自動生成します
         </p>
       </div>
 
@@ -118,42 +118,42 @@ export default function GeneratePage() {
         {/* Input form */}
         <Card>
           <CardHeader>
-            <CardTitle>Post Settings</CardTitle>
+            <CardTitle>投稿設定</CardTitle>
             <CardDescription>
-              Configure your post parameters
+              投稿のパラメータを設定してください
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleGenerate} className="space-y-4">
               <Input
                 id="topic"
-                label="Topic"
-                placeholder="Enter your post topic..."
+                label="トピック"
+                placeholder="投稿のトピックを入力してください..."
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 required
                 disabled={isGenerating}
-                helperText="What do you want to post about?"
+                helperText="何について投稿しますか？"
               />
 
               <Select
                 id="tone"
-                label="Tone"
+                label="トーン"
                 options={toneOptions}
                 value={tone}
                 onChange={(e) => setTone(e.target.value)}
                 disabled={isGenerating}
-                helperText="Choose the tone of your post"
+                helperText="投稿のトーンを選択してください"
               />
 
               <Select
                 id="length"
-                label="Length"
+                label="長さ"
                 options={lengthOptions}
                 value={length}
                 onChange={(e) => setLength(e.target.value)}
                 disabled={isGenerating}
-                helperText="Select the desired length"
+                helperText="希望する長さを選択してください"
               />
 
               {error && (
@@ -171,7 +171,7 @@ export default function GeneratePage() {
                   isLoading={isGenerating}
                   disabled={isGenerating}
                 >
-                  {isGenerating ? 'Generating...' : 'Generate Post'}
+                  {isGenerating ? '生成中...' : '投稿を生成'}
                 </Button>
                 {result && (
                   <Button
@@ -180,7 +180,7 @@ export default function GeneratePage() {
                     onClick={handleReset}
                     disabled={isGenerating}
                   >
-                    Reset
+                    リセット
                   </Button>
                 )}
               </div>
@@ -191,9 +191,9 @@ export default function GeneratePage() {
         {/* Result display */}
         <Card>
           <CardHeader>
-            <CardTitle>Generated Post</CardTitle>
+            <CardTitle>生成された投稿</CardTitle>
             <CardDescription>
-              Your AI-generated content appears here
+              AIが生成したコンテンツがここに表示されます
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -211,7 +211,7 @@ export default function GeneratePage() {
                       {result.length}
                     </span>
                     <span className="ml-auto">
-                      {result.content.length} chars
+                      {result.content.length} 文字
                     </span>
                   </div>
                 </div>
@@ -235,7 +235,7 @@ export default function GeneratePage() {
                         d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
                       />
                     </svg>
-                    Copy
+                    コピー
                   </Button>
                   <Button
                     onClick={handleRegenerate}
@@ -257,7 +257,7 @@ export default function GeneratePage() {
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                       />
                     </svg>
-                    Regenerate
+                    再生成
                   </Button>
                 </div>
               </div>
@@ -278,7 +278,7 @@ export default function GeneratePage() {
                     />
                   </svg>
                   <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-                    Enter a topic and click Generate
+                    トピックを入力して「生成」をクリック
                   </p>
                 </div>
               </div>
@@ -290,7 +290,7 @@ export default function GeneratePage() {
       {/* Tips */}
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Tips for Better Results</CardTitle>
+          <CardTitle>より良い結果を得るためのヒント</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -306,7 +306,7 @@ export default function GeneratePage() {
                   clipRule="evenodd"
                 />
               </svg>
-              <span>Be specific with your topic for more targeted content</span>
+              <span>トピックは具体的に指定すると、より的確なコンテンツが生成されます</span>
             </li>
             <li className="flex items-start gap-2">
               <svg
@@ -321,7 +321,7 @@ export default function GeneratePage() {
                 />
               </svg>
               <span>
-                Choose a tone that matches your brand or personal style
+                ブランドや個人のスタイルに合わせてトーンを選択してください
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -336,7 +336,7 @@ export default function GeneratePage() {
                   clipRule="evenodd"
                 />
               </svg>
-              <span>Use regenerate if the first result does not match your needs</span>
+              <span>最初の結果が気に入らない場合は、再生成を使用してください</span>
             </li>
           </ul>
         </CardContent>

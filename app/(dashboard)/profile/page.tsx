@@ -38,9 +38,9 @@ export default function ProfilePage() {
   const [defaultTone, setDefaultTone] = useState('professional');
 
   const toneOptions = [
-    { value: 'professional', label: 'Professional' },
-    { value: 'casual', label: 'Casual' },
-    { value: 'humorous', label: 'Humorous' },
+    { value: 'professional', label: 'プロフェッショナル' },
+    { value: 'casual', label: 'カジュアル' },
+    { value: 'humorous', label: 'ユーモラス' },
   ];
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function ProfilePage() {
 
       const response = await fetch('/api/user/profile');
       if (!response.ok) {
-        throw new Error('Failed to load profile');
+        throw new Error('プロフィールの読み込みに失敗しました');
       }
 
       const data = await response.json();
@@ -64,7 +64,7 @@ export default function ProfilePage() {
         setDefaultTone(data.profile.defaultTone || 'professional');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
     } finally {
       setIsLoading(false);
     }
@@ -103,13 +103,13 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save profile');
+        throw new Error(errorData.error || 'プロフィールの保存に失敗しました');
       }
 
-      setSuccessMessage('Profile updated successfully!');
+      setSuccessMessage('プロフィールが正常に更新されました！');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
     } finally {
       setIsSaving(false);
     }
@@ -127,10 +127,10 @@ export default function ProfilePage() {
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          Profile Settings
+          プロフィール設定
         </h1>
         <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Customize your profile to get better AI-generated posts
+          プロフィールをカスタマイズして、より良いAI生成投稿を取得
         </p>
       </div>
 
@@ -138,24 +138,24 @@ export default function ProfilePage() {
         {/* User info */}
         <Card>
           <CardHeader>
-            <CardTitle>Account Information</CardTitle>
-            <CardDescription>Your basic account details</CardDescription>
+            <CardTitle>アカウント情報</CardTitle>
+            <CardDescription>基本的なアカウント詳細</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                Name
+                名前
               </label>
               <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-                {session?.user?.name || 'Not set'}
+                {session?.user?.name || '未設定'}
               </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                Email
+                メール
               </label>
               <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-                {session?.user?.email || 'Not set'}
+                {session?.user?.email || '未設定'}
               </p>
             </div>
           </CardContent>
@@ -164,37 +164,37 @@ export default function ProfilePage() {
         {/* Preferences */}
         <Card>
           <CardHeader>
-            <CardTitle>Content Preferences</CardTitle>
+            <CardTitle>コンテンツ設定</CardTitle>
             <CardDescription>
-              Help AI understand your style and interests
+              AIにあなたのスタイルと興味を理解させる
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
               id="expertise"
-              label="Expertise"
-              placeholder="e.g., AI, Machine Learning, Web Development"
+              label="専門分野"
+              placeholder="例: AI、機械学習、Web開発"
               value={expertiseInput}
               onChange={(e) => setExpertiseInput(e.target.value)}
-              helperText="Enter your areas of expertise, separated by commas"
+              helperText="専門分野をカンマ区切りで入力してください"
             />
 
             <Input
               id="interests"
-              label="Interests"
-              placeholder="e.g., Technology, Business, Design"
+              label="興味"
+              placeholder="例: テクノロジー、ビジネス、デザイン"
               value={interestsInput}
               onChange={(e) => setInterestsInput(e.target.value)}
-              helperText="Enter your interests, separated by commas"
+              helperText="興味をカンマ区切りで入力してください"
             />
 
             <Select
               id="defaultTone"
-              label="Default Tone"
+              label="デフォルトトーン"
               options={toneOptions}
               value={defaultTone}
               onChange={(e) => setDefaultTone(e.target.value)}
-              helperText="The default tone for your generated posts"
+              helperText="生成される投稿のデフォルトトーン"
             />
           </CardContent>
           <CardFooter>
@@ -204,7 +204,7 @@ export default function ProfilePage() {
               isLoading={isSaving}
               disabled={isSaving}
             >
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? '保存中...' : '変更を保存'}
             </Button>
           </CardFooter>
         </Card>
@@ -229,7 +229,7 @@ export default function ProfilePage() {
               </svg>
               <div>
                 <h3 className="text-sm font-medium text-red-800 dark:text-red-400">
-                  Error
+                  エラー
                 </h3>
                 <p className="mt-1 text-sm text-red-700 dark:text-red-300">
                   {error}
@@ -258,7 +258,7 @@ export default function ProfilePage() {
               </svg>
               <div>
                 <h3 className="text-sm font-medium text-green-800 dark:text-green-400">
-                  Success
+                  成功
                 </h3>
                 <p className="mt-1 text-sm text-green-700 dark:text-green-300">
                   {successMessage}
@@ -272,7 +272,7 @@ export default function ProfilePage() {
       {/* Tips */}
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Profile Tips</CardTitle>
+          <CardTitle>プロフィールのヒント</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -289,8 +289,7 @@ export default function ProfilePage() {
                 />
               </svg>
               <span>
-                Add your expertise to help AI generate more relevant and
-                informed content
+                専門分野を追加すると、AIがより関連性の高い情報豊富なコンテンツを生成します
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -306,8 +305,7 @@ export default function ProfilePage() {
                 />
               </svg>
               <span>
-                List your interests to get post suggestions aligned with your
-                passions
+                興味をリストアップすると、あなたの情熱に沿った投稿の提案が得られます
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -323,7 +321,7 @@ export default function ProfilePage() {
                 />
               </svg>
               <span>
-                Set a default tone to match your brand voice across all posts
+                デフォルトトーンを設定して、すべての投稿でブランドボイスを統一
               </span>
             </li>
           </ul>
