@@ -32,7 +32,6 @@ export async function getOrCreateDemoUser() {
     data: {
       email: demoEmail,
       name: 'デモユーザー',
-      emailVerified: new Date(),
       xAccount: {
         create: {
           twitterId: 'demo_twitter_id',
