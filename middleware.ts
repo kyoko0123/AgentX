@@ -12,6 +12,10 @@ import { getToken } from 'next-auth/jwt';
  */
 const protectedPaths = [
   '/dashboard',
+  '/generate',
+  '/profile',
+  '/analysis',
+  '/scheduling',
   '/api/user',
   '/api/posts',
   '/api/analysis',
