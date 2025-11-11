@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         name: user.name,
-        twitterId: user.xAccount?.twitterId,
-        username: user.xAccount?.username,
+        twitterId: 'demo_twitter_id',
+        username: 'demo_user',
       },
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24時間
     };
