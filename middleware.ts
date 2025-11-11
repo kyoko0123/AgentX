@@ -57,13 +57,46 @@ export async function middleware(request: NextRequest) {
 
   // 保護されたパスの場合は認証チェック
   if (isProtectedPath(pathname)) {
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    // デモモードの場合はクッキーベースの認証をチェック
+    const isDemoMode = process.env.DEMO_MODE === 'true';
+    let isAuthenticated = false;
+
+    if (isDemoMode) {
+      // デモセッションクッキーをチェック
+      const demoSession = request.cookies.get('demo-session');
+      if (demoSession) {
+        try {
+          const sessionData = JSON.parse(demoSession.value);
+          if (new Date(sessionData.expires) > new Date()) {
+            isAuthenticated = true;
+          }
+        } catch (error) {
+          console.error('Failed to parse demo session:', error);
+        }
+      }
+    } else {
+      // 通常モードの場合はNextAuth JWTをチェック
+      const token = await getToken({
+        req: request,
+        secret: process.env.NEXTAUTH_SECRET,
+      });
+
+      if (token && token.error !== 'RefreshAccessTokenError') {
+        isAuthenticated = true;
+      }
+
+      // トークンエラーがある場合（リフレッシュ失敗など）
+      if (token?.error === 'RefreshAccessTokenError') {
+        // 再ログインを促すためログインページにリダイレクト
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('error', 'SessionExpired');
+        loginUrl.searchParams.set('callbackUrl', pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+    }
 
     // 認証されていない場合
-    if (!token) {
+    if (!isAuthenticated) {
       // API ルートの場合は 401 を返す
       if (pathname.startsWith('/api/')) {
         return NextResponse.json(
@@ -80,15 +113,6 @@ export async function middleware(request: NextRequest) {
 
       // ページの場合はログインページにリダイレクト
       const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // トークンエラーがある場合（リフレッシュ失敗など）
-    if (token.error === 'RefreshAccessTokenError') {
-      // 再ログインを促すためログインページにリダイレクト
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('error', 'SessionExpired');
       loginUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(loginUrl);
     }

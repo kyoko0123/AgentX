@@ -5,11 +5,12 @@
 
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useSession } from '@/lib/auth/use-session';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
   // ローディング中
   if (status === 'loading') {
@@ -32,7 +34,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // 未認証の場合はログインページへリダイレクト
   if (status === 'unauthenticated') {
-    router.push('/auth/signin');
+    router.push('/login');
     return null;
   }
 
@@ -97,7 +99,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/' });
+    if (isDemoMode) {
+      // デモモードの場合はクッキーを削除してログインページへ
+      await fetch('/api/auth/demo/logout', { method: 'POST' });
+      router.push('/login');
+    } else {
+      // 通常モードの場合はNextAuthのサインアウト
+      await signOut({ callbackUrl: '/' });
+    }
   };
 
   return (

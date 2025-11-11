@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/use-session';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
