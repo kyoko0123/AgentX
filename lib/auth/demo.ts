@@ -19,46 +19,40 @@ export async function getOrCreateDemoUser() {
   const demoEmail = 'demo@agentx.local';
 
   // 既存のデモユーザーを検索
-  let user = await prisma.user.findUnique({
+  const existingUser = await prisma.user.findUnique({
     where: { email: demoEmail },
-    include: {
-      xAccount: true,
-      userProfile: true,
+  });
+
+  if (existingUser) {
+    return existingUser;
+  }
+
+  // デモユーザーが存在しない場合は作成
+  const newUser = await prisma.user.create({
+    data: {
+      email: demoEmail,
+      name: 'デモユーザー',
+      emailVerified: new Date(),
+      xAccount: {
+        create: {
+          twitterId: 'demo_twitter_id',
+          username: 'demo_user',
+          accessToken: 'demo_access_token',
+          refreshToken: 'demo_refresh_token',
+          tokenExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1年後
+        },
+      },
+      userProfile: {
+        create: {
+          tone: 'PROFESSIONAL',
+          expertise: ['テクノロジー', 'スタートアップ', 'AI'],
+          targetAudience: 'エンジニア、起業家',
+        },
+      },
     },
   });
 
-  // デモユーザーが存在しない場合は作成
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: demoEmail,
-        name: 'デモユーザー',
-        emailVerified: new Date(),
-        xAccount: {
-          create: {
-            twitterId: 'demo_twitter_id',
-            username: 'demo_user',
-            accessToken: 'demo_access_token',
-            refreshToken: 'demo_refresh_token',
-            tokenExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1年後
-          },
-        },
-        userProfile: {
-          create: {
-            tone: 'PROFESSIONAL',
-            expertise: ['テクノロジー', 'スタートアップ', 'AI'],
-            targetAudience: 'エンジニア、起業家',
-          },
-        },
-      },
-      include: {
-        xAccount: true,
-        userProfile: true,
-      },
-    });
-  }
-
-  return user;
+  return newUser;
 }
 
 /**
