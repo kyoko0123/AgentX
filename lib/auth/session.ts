@@ -1,81 +1,75 @@
 /**
- * 認証セッション ユーティリティ
- * Server Components でセッションを取得するためのヘルパー関数
+ * セッション管理ヘルパー
+ * 通常の認証とデモモードの両方をサポート
  */
 
+import { cookies } from 'next/headers';
 import { auth } from '@/lib/auth/config';
-import { redirect } from 'next/navigation';
+import { isDemoMode } from '@/lib/auth/demo';
 
-/**
- * 現在のセッションを取得
- * Server Components で使用
- */
-export async function getSession() {
-  return await auth();
+export interface SessionUser {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  twitterId?: string;
+  username?: string;
+  image?: string | null;
+}
+
+export interface Session {
+  user: SessionUser;
+  expires: string;
 }
 
 /**
- * 認証済みセッションを取得（認証必須）
- * 認証されていない場合はログインページにリダイレクト
+ * 現在のセッションを取得
+ * デモモードと通常モードの両方に対応
  */
-export async function getAuthSession() {
+export async function getSession(): Promise<Session | null> {
+  // デモモードの場合
+  if (isDemoMode()) {
+    const cookieStore = await cookies();
+    const demoSession = cookieStore.get('demo-session');
+
+    if (demoSession) {
+      try {
+        const sessionData = JSON.parse(demoSession.value);
+
+        // 有効期限を確認
+        if (new Date(sessionData.expires) > new Date()) {
+          return sessionData;
+        }
+      } catch (error) {
+        console.error('Failed to parse demo session:', error);
+      }
+    }
+
+    return null;
+  }
+
+  // 通常モードの場合
   const session = await auth();
+  return session as Session | null;
+}
+
+/**
+ * 認証が必要なページで使用
+ * セッションがない場合はnullを返す
+ */
+export async function requireAuth(): Promise<Session> {
+  const session = await getSession();
 
   if (!session) {
-    redirect('/login');
+    throw new Error('Unauthorized');
   }
 
   return session;
 }
 
 /**
- * 現在のユーザーIDを取得
- * 認証されていない場合は null を返す
+ * ユーザーIDを取得
  */
-export async function getCurrentUserId(): Promise<string | null> {
-  const session = await auth();
+export async function getUserId(): Promise<string | null> {
+  const session = await getSession();
   return session?.user?.id || null;
-}
-
-/**
- * 現在のユーザーIDを取得（認証必須）
- * 認証されていない場合はログインページにリダイレクト
- */
-export async function getRequiredUserId(): Promise<string> {
-  const session = await getAuthSession();
-  return session.user.id;
-}
-
-/**
- * 現在のユーザー情報を取得
- */
-export async function getCurrentUser() {
-  const session = await auth();
-  return session?.user || null;
-}
-
-/**
- * 認証済みユーザー情報を取得（認証必須）
- * 認証されていない場合はログインページにリダイレクト
- */
-export async function getRequiredUser() {
-  const session = await getAuthSession();
-  return session.user;
-}
-
-/**
- * セッションが有効かチェック
- */
-export async function isAuthenticated(): Promise<boolean> {
-  const session = await auth();
-  return !!session;
-}
-
-/**
- * セッションエラーをチェック
- * トークンリフレッシュエラーがある場合は true を返す
- */
-export async function hasSessionError(): Promise<boolean> {
-  const session = await auth();
-  return !!session?.error;
 }
