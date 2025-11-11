@@ -24,6 +24,13 @@ export async function POST(request: NextRequest) {
     // デモユーザーを取得または作成
     const user = await getOrCreateDemoUser();
 
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Failed to create demo user' },
+        { status: 500 }
+      );
+    }
+
     // セッションCookieを設定（NextAuth.jsの代わり）
     const cookieStore = await cookies();
 
