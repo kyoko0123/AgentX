@@ -23,7 +23,7 @@ export async function getOrCreateDemoUser() {
     where: { email: demoEmail },
     include: {
       xAccount: true,
-      profile: true,
+      userProfile: true,
     },
   });
 
@@ -43,7 +43,7 @@ export async function getOrCreateDemoUser() {
             tokenExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1年後
           },
         },
-        profile: {
+        userProfile: {
           create: {
             tone: 'PROFESSIONAL',
             expertise: ['テクノロジー', 'スタートアップ', 'AI'],
@@ -53,7 +53,7 @@ export async function getOrCreateDemoUser() {
       },
       include: {
         xAccount: true,
-        profile: true,
+        userProfile: true,
       },
     });
   }
